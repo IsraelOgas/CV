@@ -63,7 +63,7 @@ app.get('/usuario/:_id', (req, res) => {
     });
 });
 
-
+// Registrar un nuevo usuario
 app.post('/usuario', (req, res) => {
 	console.log('POST /usuario');
 	//req.body _ cuerpo de la cabecera
@@ -80,6 +80,36 @@ app.post('/usuario', (req, res) => {
 		res.status(200).send({usuarios: usuarioAGuardar});
 		//console.log(usuarioAGuardar);
 	});
+});
+
+// Modificar un usuario
+app.put('/usuario/:_id', (req, res) => {
+    let usuarioId = req.params._id;
+    let modificar = req.body;
+
+    // busca el usuario por la id y lo actualiza en la coleccion 'usuarios'
+    Usuario.findByIdAndUpdate(usuarioId, modificar, (err, usuarioModificado) => {
+    	if(err) return res.status(500).send({message: `Error al actualizar el usuario: ${err}`});
+
+   	// enviar por pantalla usuario modificado
+   	res.status(200).send({ Usuario: usuarioModificado });
+	console.log(usuarioModificado);
+    });
+});
+
+// Eliminar un usuario
+app.delete('/usuario/:_id', (req, res) => {
+    let usuarioId = req.params._id;
+
+    Usuario.findById(usuarioId, (err, usuario) => {
+    	if(err) return res.status(500).send({message: `Error al borrar el usuario: ${err}`});
+
+    	//eliminarlo
+    	usuario.remove(err => {
+    		if(err) return res.status(500).send({message: `Error al borrar el usuario: ${err}`});
+    		res.status(200).send({message: 'El usuario ha sido eliminado'});
+    	});
+    });
 });
 
 app.listen('80',() =>{
