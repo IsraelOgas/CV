@@ -1,42 +1,28 @@
-const express  = require('express');
-const app = express();
-const mysql = require('mysql');
-const path = require('path');
+const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
+const app = express();
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-// Creando conexion
-const db = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'root',
-    password : 'a5c338eaed21c2018',
-    database : 'almacenamiento',
-});
+// realizando conexion con la bd
+//mongoose.connect('mongodb://localhost/almacenamiento');
 
-// Conectandose a la BD
-db.connect((err) => {
-    if(!err){
-	console.log('Conexion con la BD EXITOSA');
-    }else{
-	console.log('Error al intentar conectarse a la BD');
-    	throw err;
-    }
-});
+mongoose.connect('mongodb://localhost/almacenamiento', { useMongoClient: true })
 
-app.get('/list', (req, res) => {
-    db.query('SELECT * FROM usuarios', (err, rows, fields) => {
-         db.end();
-	 if(!err){
-            console.log('datos: ',rows);
-	    res.send(rows);
-	    res.render('/assets/usuarios.html',{
-	   	usuarios: rows
-            });
-	 }else{
-            console.log('Ocurrio un error al ejecutar la consulta');
-	    throw err;
-	}
-    });
-});
+
+var usuariosSchemaJSON = {
+    nombre: String,
+    rut: String,
+    edad: Number
+};
+
+// Creando Schema
+var usuarioSchema = new Schema(usuariosSchemaJSON);
+
+// Creando modelo
+var Usuario = mongoose.model("Usuario",usuarioSchema);
+
 
 app.use(bodyParser.urlencoded({extended: false }));
 app.use(bodyParser.json());
@@ -53,6 +39,14 @@ app.get('/hola', (req, res) => res.send('Esta es la paginita que te SALUDA!'));
 // ruta de la pagina CV
 app.use(express.static('assets'));
 app.get('/CV', (req, res) => res.sendFile(path.join(__dirname , 'assets/index.html')));
+
+// ruta de la pagina list
+app.get('/list', (req, res) => {
+    Usuario.find((err, result) => {
+        console.log(result);
+        res.send(result);
+    });
+});
 
 app.listen('80',() =>{
     console.log('Servidor iniciado en el puerto 80');
